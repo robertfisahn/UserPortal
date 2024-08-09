@@ -34,11 +34,7 @@ namespace UserPortal.Services
         {
             var user = _mapper.Map<User>(dto);
             user.PasswordHash = _passwordHasher.HashPassword(user, dto.Password);
-            var role = _roleCollection.Find(r => r.Name == "User").FirstOrDefault();
-            if (role == null)
-            {
-                throw new BadRequestException("Default role 'User' not found");
-            }
+            var role = _roleCollection.Find(r => r.Name == "User").FirstOrDefault() ?? throw new NotFoundException("Default role 'User' not found");
             user.RoleId = role.Id;
 
             _userCollection.InsertOne(user);
@@ -46,11 +42,7 @@ namespace UserPortal.Services
 
         public string GenerateJwt(LoginDto dto)
         {
-            var user = _userCollection.Find(u => u.Email == dto.Email).FirstOrDefault();
-            if (user == null)
-            {
-                throw new BadRequestException("Invalid username");
-            }
+            var user = _userCollection.Find(u => u.Email == dto.Email).FirstOrDefault() ?? throw new NotFoundException("Invalid email");
 
             var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, dto.Password);
             if (result == PasswordVerificationResult.Failed)
@@ -58,7 +50,7 @@ namespace UserPortal.Services
                 throw new BadRequestException("Invalid username or password");
             }
 
-            user.Role = _roleCollection.Find(r => r.Id == user.RoleId).FirstOrDefault();
+            user.Role = _roleCollection.Find(r => r.Id == user.RoleId).FirstOrDefault() ?? throw new NotFoundException("Role not found");
 
             var claims = new List<Claim>()
             {
@@ -79,6 +71,14 @@ namespace UserPortal.Services
 
             var tokenHandler = new JwtSecurityTokenHandler();
             return tokenHandler.WriteToken(token);
+        }
+
+        public void UpdateUser(UpdateUserDto dto)
+        {
+            var user = _userCollection.Find(u => u.Email == dto.Email).FirstOrDefault() ?? throw new NotFoundException("Invalid email");
+            var role = _roleCollection.Find(r => r.Name == dto.RoleName).FirstOrDefault() ?? throw new NotFoundException("Role not found");
+            user.RoleId = role.Id;
+            _userCollection.ReplaceOne(u => u.Id == user.Id, user);
         }
     }
 }

@@ -18,6 +18,13 @@ namespace UserPortal.Middleware
                 var result = JsonConvert.SerializeObject(new { error = badRequestException.Message });
                 await context.Response.WriteAsync(result);
             }
+            catch (NotFoundException notFoundException)
+            {
+                context.Response.StatusCode = 404;
+                context.Response.ContentType = "application/json";
+                var result = JsonConvert.SerializeObject(new { error = notFoundException.Message });
+                await context.Response.WriteAsync(result);
+            }
         }
 
     }

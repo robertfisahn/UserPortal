@@ -5,6 +5,7 @@ namespace UserPortal.Interfaces
     public interface IAccountService
     {
         void RegisterUser(RegisterUserDto dto);
-        public string GenerateJwt(LoginDto dto);
+        string GenerateJwt(LoginDto dto);
+        void UpdateUser(UpdateUserDto dto);
     }
 }
