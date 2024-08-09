@@ -1,4 +1,4 @@
-﻿namespace UserPortal.Data
+﻿namespace UserPortal
 {
     public class MongoDbSettings
     {
